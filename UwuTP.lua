@@ -33,6 +33,7 @@ local tUwuStates =
         {
             ["HP"] = " ",
             ["Distance"] = " ",
+            ["Enmity"] = "<Enmity> ",
             ["Using"] = " ",
         }
 
@@ -262,8 +263,8 @@ function Round(num, numDecimalPlaces)
   
 end
 
-
 --Build strings based on 0x028 fields
+
 function ActionString(param, t_param, category)
     
     local res = resources
@@ -318,14 +319,35 @@ function ActionString(param, t_param, category)
     end
 
 end
+
+--registered handler for clearing using messages on mob death
+
+function ClearMessages(packet_obj, packet_info)
+
+    for k,_ in pairs(tUwuStates) do 
+
+        tUwuStates[k]["Strings"]["Using"] = " "
+
+        if k == "Target" then
+
+            tUwuStates[k]["Strings"]["Enmity"] = "<Enmity> "
+
+        end
+
+    end
+
+end
+
  
---our registered handler for 0x028 packets
+--registered handler for 0x028 packets
+
 function ActionHandler(packet_obj, packet_info)
 
     local actor = packet_obj['actor']
     local category = packet_obj['category']
     local param = packet_obj['param']
     local target1_param = packet_obj['targets'][1]['actions'][1]['param']
+    local enemy_target = entities:by_id(packet_obj['targets'][1]['id'])
     local targeted = target.t or target.st
      
     --build our strings depending on actor field and populate our table
@@ -391,6 +413,18 @@ function ActionHandler(packet_obj, packet_info)
         if actor == targeted.id then
 
             tUwuStates["Target"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            
+            --enmity check, it's not consistent but it's better than nothing
+            
+            if not enemy_target then
+
+                tUwuStates["Target"]["Strings"]["Enmity"] = "<Enmity> "
+
+            else
+
+                tUwuStates["Target"]["Strings"]["Enmity"] = "<Enmity> " .. enemy_target.name
+
+            end
 
             --solution to adding magic cast and abilities used by target to movelist without 
             --having to send actor to ActionString and check it against target again
@@ -473,6 +507,7 @@ ui.display(function()
             local hpp = FormatStr(tUwuStates["Target"]["Strings"]["HP"], t_format)
             local using = FormatStr(tUwuStates["Target"]["Strings"]["Using"], t_format)
             local distance = FormatStr(tUwuStates["Target"]["Strings"]["Distance"], t_format)
+            local enmity = FormatStr(tUwuStates["Target"]["Strings"]["Enmity"], t_format)
             --colors
             local target_hp = {color = ui.color.accent}
             local dist_color = GetDistanceColor(math.sqrt(targeted.distance))
@@ -484,7 +519,9 @@ ui.display(function()
             ui.location(0, 45)
             ui.size(80, 10)
             ui.progress(targeted.hp_percent/100, target_hp)
-            ui.location(0, 60)
+            ui.location(0, 50)
+            ui.text(enmity, text_opt)
+            ui.location(0, 75)
             ui.text(using, text_opt)            
        
         end)
@@ -765,9 +802,9 @@ ui.display(function()
 
 end)
 
---register our function on incoming 0x028
+--register functions to packets
 
 packet.incoming[0x028]:register(ActionHandler)
-
+packet.incoming[0x02D]:register(ClearMessages)
 
 
