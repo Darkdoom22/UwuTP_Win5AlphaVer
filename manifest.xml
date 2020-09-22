@@ -3,11 +3,12 @@
   <version>1.0.0.0</version>
   <type>addon</type>
   <dependencies>
-<dependency>player</dependency>
-<dependency>packet</dependency>
-<dependency>resources</dependency>
-<dependency>party</dependency>
-<dependency>enumerable</dependency>
-<dependency>target</dependency>
-</dependencies>
+    <dependency>player</dependency>
+    <dependency>packet</dependency>
+    <dependency>resources</dependency>
+    <dependency>party</dependency>
+    <dependency>enumerable</dependency>
+    <dependency>target</dependency>
+    <dependency>entities</dependency>
+  </dependencies>
 </package>
