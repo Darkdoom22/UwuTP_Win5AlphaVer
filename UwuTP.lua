@@ -9,6 +9,7 @@ local target = require('target')
 local math = require('math')
 local exclusions = require('exclusions')
 local table = require('table')
+local entities = require('entities')
 
 --Contains window settings and associated strings
 
@@ -90,7 +91,7 @@ local tUwuStates =
         ["Window"] = {
             title = "P3",
             style = "chromeless",
-            x = 1509,
+            x = 1529,
             y = 383,
             width = 300,
             height = 300,
@@ -162,7 +163,7 @@ local tUwuStates =
         ["Window"] = {
             title = "P6",
             style = "chromeless",
-            x = 1509,
+            x = 1539,
             y = 533,
             width = 300,
             height = 300,
@@ -206,6 +207,52 @@ tMovelist = {
 
 }
 
+--some helper functions for changing colors on the fly
+        
+function GetDistanceColor(distance)
+
+   local color = {color = ui.color.rgb(119, 247, 237)}
+    
+    if distance < 15 then
+
+        return color
+
+    elseif distance > 15 and distance < 20.9 then
+
+
+        color = {color = ui.color.yellow}
+        return color
+
+    elseif distance > 20.9 then 
+
+        color = {color = ui.color.red}
+        return color
+
+    end
+
+end
+
+function GetTPColor(tp)
+
+    local color = {color = ui.color.green}
+
+    if tp == 3000 then
+
+        color = {color = ui.color.gold}
+        return color
+
+    elseif tp < 3000 and tp > 1000 then
+
+        color = {color = ui.color.purple}
+        return color
+
+    elseif tp < 1000 then
+
+        return color
+
+    end
+
+end
 
 function Round(num, numDecimalPlaces)
 
@@ -428,11 +475,12 @@ ui.display(function()
             local distance = FormatStr(tUwuStates["Target"]["Strings"]["Distance"], t_format)
             --colors
             local target_hp = {color = ui.color.accent}
-        
+            local dist_color = GetDistanceColor(math.sqrt(targeted.distance))
+            
             ui.location(0, 0)
             ui.text(hpp, text_opt)
             ui.location(120, 22)
-            ui.text(distance, text_opt)
+            ui.text(distance, dist_color)
             ui.location(0, 45)
             ui.size(80, 10)
             ui.progress(targeted.hp_percent/100, target_hp)
@@ -464,24 +512,10 @@ ui.display(function()
             local tp = FormatStr(tUwuStates["P1"]["Strings"]["TP"], format)
             local using = FormatStr(tUwuStates["P1"]["Strings"]["Using"], format)
             --colors
-            local p1_tp = {color = ui.color.green}
+            local p1_tp = GetTPColor(party[1].tp)
             local p1_hp = {color = ui.color.accent}
             local p1_mp = {color = ui.color.blue}
             
-            if player.tp == 3000 then
-
-                p1_tp = {color = ui.color.gold}
-
-            elseif player.tp < 3000 and player.tp > 1000 then
-
-                p1_tp = {color = ui.color.purple}
-
-            elseif player.tp < 1000 then
-
-                p1_tp = {color = ui.color.green}
-
-            end
-
             ui.location(0, 0)
             ui.text(hpp, text_opt)
             ui.size(80, 10)
@@ -515,22 +549,26 @@ ui.display(function()
             local mpp = FormatStr(tUwuStates["P2"]["Strings"]["MP"], format)
             local tp = FormatStr(tUwuStates["P2"]["Strings"]["TP"], format)
             local using = FormatStr(tUwuStates["P2"]["Strings"]["Using"], format)
+            --distance stuff
+            local distance = Round(math.sqrt(entities:by_id(party[2].id).distance), 1)
+            local dist_str = FormatStr("[D] " .. tostring(distance), format)
             --colors
-            local p2_tp = {color = ui.color.green}
+            local p2_tp = GetTPColor(party[2].tp)
             local p2_hp = {color = ui.color.accent}
             local p2_mp = {color = ui.color.blue}
+            local p2_dist = GetDistanceColor(distance)
 
-            if party[2].tp == 3000 then
+            if distance < 15 then
 
-                p2_tp = {color = ui.color.gold}
+                p2_dist = {color = ui.color.rgb(119, 247, 237)}
 
-            elseif party[2].tp < 3000 and party[2].tp > 1000 then
+            elseif distance > 15 and distance < 20 then
 
-                p2_tp = {color = ui.color.purple}
+                p2_dist = {color = ui.color.yellow}
 
-            elseif party[2].tp < 1000 then
+            elseif distance > 20 then 
 
-                p2_tp = {color = ui.color.green}
+                p2_dist = {color = ui.color.red}
 
             end
 
@@ -548,6 +586,8 @@ ui.display(function()
             ui.progress(party[2].tp/3000, p2_tp)
             ui.location(0, 110)
             ui.text(using, text_opt)
+            ui.location(70, 50)
+            ui.text(dist_str, p2_dist)
        
         end)
 
@@ -567,25 +607,13 @@ ui.display(function()
             local mpp = FormatStr(tUwuStates["P3"]["Strings"]["MP"], format)
             local tp = FormatStr(tUwuStates["P3"]["Strings"]["TP"], format)
             local using = FormatStr(tUwuStates["P3"]["Strings"]["Using"], format)
-            --clors
-            local p3_tp = {color = ui.color.green}
+            local distance = Round(math.sqrt(entities:by_id(party[3].id).distance), 1)
+            local dist_str = FormatStr("[D] " .. tostring(distance), format)
+            --colors
+            local p3_tp = GetTPColor(party[3].tp)
             local p3_hp = {color = ui.color.accent}
             local p3_mp = {color = ui.color.blue}
-
-            if party[3].tp == 3000 then
-
-                p3_tp = {color = ui.color.gold}
-
-            elseif party[3].tp < 3000 and party[3].tp > 1000 then
-
-                p3_tp = {color = ui.color.purple}
-            
-            elseif party[3].tp < 1000 then
-
-                p3_tp = {color = ui.color.green}
-
-            end
-
+            local p3_dist = GetDistanceColor(distance)
 
             ui.location(0, 0)
             ui.text(hpp, text_opt)
@@ -601,6 +629,8 @@ ui.display(function()
             ui.progress(party[3].tp/3000, p3_tp)
             ui.location(0, 110)
             ui.text(using, text_opt)  
+            ui.location(70, 50)
+            ui.text(dist_str, p3_dist)
     
         end)
 
@@ -619,24 +649,13 @@ ui.display(function()
             local mpp = FormatStr(tUwuStates["P4"]["Strings"]["MP"], format)
             local tp = FormatStr(tUwuStates["P4"]["Strings"]["TP"], format)
             local using = FormatStr(tUwuStates["P4"]["Strings"]["Using"], format)
+            local distance = Round(math.sqrt(entities:by_id(party[4].id).distance), 1)
+            local dist_str = FormatStr("[D] " .. tostring(distance), format)
             --colors
-            local p4_tp = {color = ui.color.green}
+            local p4_tp = GetTPColor(party[4].tp)
             local p4_hp = {color = ui.color.accent}
             local p4_mp = {color = ui.color.blue}
-
-            if party[4].tp == 3000 then
-
-                p4_tp = {color = ui.color.gold}
-
-            elseif party[4].tp < 3000 and party[4].tp > 1000 then
-
-                p4_tp = {color = ui.color.purple}
-            
-            elseif party[3].tp < 1000 then
-
-                p4_tp = {color = ui.color.green}
-
-            end
+            local p4_dist = GetDistanceColor(distance)
 
             ui.location(0, 0)
             ui.text(hpp, text_opt)
@@ -652,6 +671,8 @@ ui.display(function()
             ui.progress(party[4].tp/3000, p4_tp)
             ui.location(0, 110)
             ui.text(using, text_opt)
+            ui.location(70, 50)
+            ui.text(dist_str, p4_dist)
       
         end)
 
@@ -671,24 +692,13 @@ ui.display(function()
             local mpp = FormatStr(tUwuStates["P5"]["Strings"]["MP"], format)
             local tp = FormatStr(tUwuStates["P5"]["Strings"]["TP"], format)
             local using = FormatStr(tUwuStates["P5"]["Strings"]["Using"], format)
+            local distance = Round(math.sqrt(entities:by_id(party[5].id).distance), 1)
+            local dist_str = FormatStr("[D] " .. tostring(distance), format)
             --colors
-            local p5_tp = {color = ui.color.green}
+            local p5_tp = GetTPColor(party[5].tp)
             local p5_hp = {color = ui.color.accent}
             local p5_mp = {color = ui.color.blue}
-
-            if party[5].tp == 3000 then
-
-                p5_tp = {color = ui.color.gold}
-
-            elseif party[5].tp < 3000 and party[5].tp > 1000 then
-
-                p5_tp = {color = ui.color.purple}
-            
-            elseif party[5].tp < 1000 then
-
-                p5_tp = {color = ui.color.green}
-
-            end
+            local p5_dist = GetDistanceColor(distance)
 
             ui.location(0, 0)
             ui.text(hpp, text_opt)
@@ -703,7 +713,9 @@ ui.display(function()
             ui.size(80, 10) 
             ui.progress(party[5].tp/3000, p5_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt)   
+            ui.text(using, text_opt) 
+            ui.location(70, 50)
+            ui.text(dist_str, p5_dist)  
     
         end)
 
@@ -722,24 +734,13 @@ ui.display(function()
             local mpp = FormatStr(tUwuStates["P6"]["Strings"]["MP"], format)
             local tp = FormatStr(tUwuStates["P6"]["Strings"]["TP"], format)
             local using = FormatStr(tUwuStates["P6"]["Strings"]["Using"], format)
+            local distance = Round(math.sqrt(entities:by_id(party[6].id).distance), 1)
+            local dist_str = FormatStr("[D] " .. tostring(distance), format)
             --colors
-            local p6_tp = {color = ui.color.green}
+            local p6_tp = GetTPColor(party[6].tp)
             local p6_hp = {color = ui.color.accent}
             local p6_mp = {color = ui.color.blue}
-
-            if party[6].tp == 3000 then
-
-                p6_tp = {color = ui.color.gold}
-
-            elseif party[6].tp < 3000 and party[6].tp > 1000 then
-
-                p6_tp = {color = ui.color.purple}
-            
-            elseif party[6].tp < 1000 then
-
-                p6_tp = {color = ui.color.green}
-
-            end
+            local p6_dist = GetDistanceColor(distance)
 
             ui.location(0, 0)
             ui.text(hpp, text_opt)
@@ -755,7 +756,9 @@ ui.display(function()
             ui.progress(party[6].tp/3000, p6_tp)
             ui.location(0, 110)
             ui.text(using, text_opt)
-        
+            ui.location(70, 50)
+            ui.text(dist_str, p6_dist)
+
         end)
 
     end  
@@ -766,32 +769,5 @@ end)
 
 packet.incoming[0x028]:register(ActionHandler)
 
---[[
-Copyright © 2020, Uwu/Darkdoom
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Uwu/Darkdoom nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL Uwu/Darkdoom BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-]]
 
 
