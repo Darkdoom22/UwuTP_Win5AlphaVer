@@ -284,7 +284,6 @@ function ActionString(param, t_param, category)
         elseif category == 7 and t_param <= 255  then
             
             str = "[WS] " .. resources.weapon_skills[t_param].name
-            print(str)
             return str
 
         --trust ws
