@@ -2,7 +2,6 @@ local ui = require('core.ui')
 local player = require('player')
 local packet = require('packet')
 local party = require('party')
-local resources = require('resources')
 local enumerable = require('enumerable')
 local coroutine = require('coroutine')
 local target = require('target')
@@ -10,6 +9,8 @@ local math = require('math')
 local exclusions = require('exclusions')
 local table = require('table')
 local entities = require('entities')
+local client_data = require('client_data')
+local resources = require('resources')
 
 --Contains window settings and associated strings
 
@@ -267,7 +268,6 @@ end
 
 function ActionString(param, t_param, category)
     
-    local res = resources
     local str = " "
 
     if param and t_param and category then
@@ -276,21 +276,22 @@ function ActionString(param, t_param, category)
 
         if category == 8 then 
 
-            str = "[MA] " .. res.spells[t_param].name
+            str = "[MA] " .. client_data.spells[t_param].name
             return str
 
         --player ws
 
-        elseif category == 7 and param <= 255  then
+        elseif category == 7 and t_param <= 255  then
             
-            str = "[WS] " .. res.weapon_skills[t_param].name
+            str = "[WS] " .. resources.weapon_skills[t_param].name
+            print(str)
             return str
 
         --trust ws
 
         elseif category == 7 and t_param > 255 and enumerable.contains(exclusions, t_param) == false then
 
-            str = "[WS] " .. res.monster_abilities[t_param].name
+            str = "[WS] " .. resources.monster_abilities[t_param].name
             return str
 
         --finish categories        
@@ -309,7 +310,7 @@ function ActionString(param, t_param, category)
             
         elseif category == 11 and enumerable.contains(exclusions, param) == false then
 
-            str = "[Finishing] " .. res.monster_abilities[param].name
+            str = "[Finishing] " .. resources.monster_abilities[param].name
             return str
 
         else return str
@@ -331,6 +332,7 @@ function ClearMessages(packet_obj, packet_info)
         if k == "Target" then
 
             tUwuStates[k]["Strings"]["Enmity"] = "<Enmity> "
+            tUwuStates[k]["Strings"]["Using"] = " "
 
         end
 
@@ -355,7 +357,7 @@ function ActionHandler(packet_obj, packet_info)
     if actor == player.id then
                
         tUwuStates["P1"]["Strings"]["Using"] = ActionString(param, target1_param, category)
-    
+
     end
     
     if party[2] ~= nil then
@@ -432,7 +434,7 @@ function ActionHandler(packet_obj, packet_info)
             if category == 8 then
 
                 tUwuStates["Target"]["Strings"]["Using"] = ActionString(param, target1_param, category)
-                table.insert(tMovelist, resources.spells[target1_param].name)
+                table.insert(tMovelist, client_data.spells[target1_param].name)
 
             elseif category == 11 and enumerable.contains(exclusions, param) == false then
                 
