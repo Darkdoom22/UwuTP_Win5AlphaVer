@@ -3,7 +3,6 @@ local player = require('player')
 local packet = require('packet')
 local party = require('party')
 local enumerable = require('enumerable')
-local coroutine = require('coroutine')
 local target = require('target')
 local math = require('math')
 local exclusions = require('exclusions')
@@ -11,7 +10,7 @@ local table = require('table')
 local entities = require('entities')
 local client_data = require('client_data')
 local resources = require('resources')
-
+local helpers = require('helpers')
 --Contains window settings and associated strings
 
 local tUwuStates = 
@@ -209,118 +208,7 @@ tMovelist = {
 
 }
 
---some helper functions for changing colors on the fly
-        
-function GetDistanceColor(distance)
-
-   local color = {color = ui.color.rgb(119, 247, 237)}
-    
-    if distance < 15 then
-
-        return color
-
-    elseif distance > 15 and distance < 20.9 then
-
-
-        color = {color = ui.color.yellow}
-        return color
-
-    elseif distance > 20.9 then 
-
-        color = {color = ui.color.red}
-        return color
-
-    end
-
-end
-
-function GetTPColor(tp)
-
-    local color = {color = ui.color.green}
-
-    if tp == 3000 then
-
-        color = {color = ui.color.gold}
-        return color
-
-    elseif tp < 3000 and tp > 1000 then
-
-        color = {color = ui.color.purple}
-        return color
-
-    elseif tp < 1000 then
-
-        return color
-
-    end
-
-end
-
-function Round(num, numDecimalPlaces)
-
-    local mult = 10^(numDecimalPlaces or 0)
-    
-    return math.floor(num * mult + 0.5) / mult
-  
-end
-
---Build strings based on 0x028 fields
-
-function ActionString(param, t_param, category)
-    
-    local str = " "
-
-    if param and t_param and category then
-
-        --magic
-
-        if category == 8 then 
-
-            str = "[MA] " .. client_data.spells[t_param].name
-            return str
-
-        --player ws
-
-        elseif category == 7 and t_param <= 255  then
-            
-            str = "[WS] " .. resources.weapon_skills[t_param].name
-            return str
-
-        --trust ws
-
-        elseif category == 7 and t_param > 255 and enumerable.contains(exclusions, t_param) == false then
-
-            str = "[WS] " .. resources.monster_abilities[t_param].name
-            return str
-
-        --finish categories        
-
-        elseif category == 4 or category == 3 then
-
-            str = " "
-            return str
-        
-        --don't return nameless weaponskills(AoE Melee attacks are the most prominent)    
-
-        elseif category == 7 or category == 8 or category == 11 and enumerable.contains(exclusions, param) == true then
-
-            str = " "
-            return str
-            
-        elseif category == 11 and enumerable.contains(exclusions, param) == false then
-
-            str = "[Finishing] " .. resources.monster_abilities[param].name
-            return str
-
-        else return str
-
-        end
-
-    end
-
-end
-
---registered handler for clearing using messages on mob death
+--registered handler for clearing using messages on mob death(0x02D)
 
 function ClearMessages(packet_obj, packet_info)
 
@@ -339,7 +227,6 @@ function ClearMessages(packet_obj, packet_info)
 
 end
 
- 
 --registered handler for 0x028 packets
 
 function ActionHandler(packet_obj, packet_info)
@@ -355,7 +242,7 @@ function ActionHandler(packet_obj, packet_info)
 
     if actor == player.id then
                
-        tUwuStates["P1"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+        tUwuStates["P1"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
 
     end
     
@@ -363,7 +250,7 @@ function ActionHandler(packet_obj, packet_info)
     
         if actor == party[2].id then
 
-            tUwuStates["P2"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            tUwuStates["P2"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
 
         end
 
@@ -373,7 +260,7 @@ function ActionHandler(packet_obj, packet_info)
 
         if actor == party[3].id then
 
-            tUwuStates["P3"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            tUwuStates["P3"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
 
         end
 
@@ -383,7 +270,7 @@ function ActionHandler(packet_obj, packet_info)
 
         if actor == party[4].id then
 
-            tUwuStates["P4"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            tUwuStates["P4"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
 
         end
 
@@ -393,7 +280,7 @@ function ActionHandler(packet_obj, packet_info)
 
         if actor == party[5].id then 
 
-            tUwuStates["P5"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            tUwuStates["P5"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
 
         end
 
@@ -403,7 +290,7 @@ function ActionHandler(packet_obj, packet_info)
 
         if actor == party[6].id then
 
-            tUwuStates["P6"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            tUwuStates["P6"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
 
         end
 
@@ -413,7 +300,7 @@ function ActionHandler(packet_obj, packet_info)
 
         if actor == targeted.id then
 
-            tUwuStates["Target"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+            tUwuStates["Target"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
             
             --enmity check, it's not consistent but it's better than nothing
             
@@ -432,12 +319,12 @@ function ActionHandler(packet_obj, packet_info)
 
             if category == 8 then
 
-                tUwuStates["Target"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+                tUwuStates["Target"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
                 table.insert(tMovelist, client_data.spells[target1_param].name)
 
             elseif category == 11 and enumerable.contains(exclusions, param) == false then
                 
-                tUwuStates["Target"]["Strings"]["Using"] = ActionString(param, target1_param, category)
+                tUwuStates["Target"]["Strings"]["Using"] = helpers.ActionString(param, target1_param, category)
                 table.insert(tMovelist, resources.monster_abilities[param].name)
 
             end
@@ -446,19 +333,6 @@ function ActionHandler(packet_obj, packet_info)
 
     end 
     
-end
-
---ez string formatting 
-
-function FormatStr(string, formatting)
-
-    if string and formatting then
-
-        local str = "[" .. string .. "]" .. "{" .. formatting .. "}"
-        return str
-
-    end
-
 end
 
 --render everything
@@ -481,18 +355,20 @@ ui.display(function()
             local movestr = " "
 
             if #tMovelist > 0 and #tMovelist < 15 then
-              ui.location(20, 0)  
-              move_opt = text_opt
-              movestr = FormatStr("<Used>\n" .. table.concat(tMovelist,'\n'), t_format)
+              
+                ui.location(20, 0)  
+                move_opt = text_opt
+                movestr = helpers.FormatStr("<Used>\n" .. table.concat(tMovelist,'\n'), t_format)
             
             elseif #tMovelist > 15 then
 
                 tMovelist = {}
 
             else
+            
                 ui.location(20, 0)
                 move_opt = {color = ui.color.grey}
-                movestr = FormatStr("<No Moves Used>", t_format)
+                movestr = helpers.FormatStr("<No Moves Used>", t_format)
 
             end
 
@@ -504,26 +380,31 @@ ui.display(function()
         ui.window('target_window', tUwuStates["Target"]["Window"], function()  
 
             tUwuStates["Target"]["Strings"]["HP"] = targeted.name .. "\n[HP%] " .. targeted.hp_percent
-            tUwuStates["Target"]["Strings"]["Distance"] = "[D] " .. Round(math.sqrt(targeted.distance), 3)
-            local hpp = FormatStr(tUwuStates["Target"]["Strings"]["HP"], t_format)
-            local using = FormatStr(tUwuStates["Target"]["Strings"]["Using"], t_format)
-            local distance = FormatStr(tUwuStates["Target"]["Strings"]["Distance"], t_format)
-            local enmity = FormatStr(tUwuStates["Target"]["Strings"]["Enmity"], t_format)
-            --colors
+            tUwuStates["Target"]["Strings"]["Distance"] = "[D] " .. helpers.Round(math.sqrt(targeted.distance), 3)
+
+            local t_values = {
+                ["HP"] = {},
+                ["Distance"] = {},
+                ["Enmity"] = {},
+                ["Using"] = {}
+            }
+
+            t_values = helpers.FormatStringTable(tUwuStates["Target"]["Strings"], t_values, t_format)
+
             local target_hp = {color = ui.color.accent}
-            local dist_color = GetDistanceColor(math.sqrt(targeted.distance))
+            local dist_color = helpers.GetDistanceColor(math.sqrt(targeted.distance))
             
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(t_values["HP"], text_opt)
             ui.location(120, 22)
-            ui.text(distance, dist_color)
+            ui.text(t_values["Distance"], dist_color)
             ui.location(0, 45)
             ui.size(80, 10)
             ui.progress(targeted.hp_percent/100, target_hp)
-            ui.location(0, 50)
-            ui.text(enmity, text_opt)
-            ui.location(0, 75)
-            ui.text(using, text_opt)            
+            ui.location(0, 55)
+            ui.text(t_values["Enmity"], text_opt)
+            ui.location(0, 80)
+            ui.text(t_values["Using"], text_opt)            
        
         end)
     
@@ -540,34 +421,39 @@ ui.display(function()
 
         if player then
             
-
+            --update main table
             tUwuStates["P1"]["Strings"]["HP"] = party[1].name .. "\n[HP%] " .. party[1].hp_percent
             tUwuStates["P1"]["Strings"]["MP"] = "[MP%] " .. party[1].mp_percent
             tUwuStates["P1"]["Strings"]["TP"] = "[TP] " .. party[1].tp
-
-            local hpp = FormatStr(tUwuStates["P1"]["Strings"]["HP"], format)
-            local mpp = FormatStr(tUwuStates["P1"]["Strings"]["MP"], format)
-            local tp = FormatStr(tUwuStates["P1"]["Strings"]["TP"], format)
-            local using = FormatStr(tUwuStates["P1"]["Strings"]["Using"], format)
-            --colors
-            local p1_tp = GetTPColor(party[1].tp)
+            --setup local string table
+            local p1_values = {
+                ["HP"] = {},
+                ["MP"] = {},
+                ["TP"] = {},
+                ["Distance"] = {},
+                ["Using"] = {},
+            }
+            --apply formatting and values
+            p1_values = helpers.FormatStringTable(tUwuStates["P1"]["Strings"], p1_values, format)
+            --apply colors//todo: add hp/mp% based changing colors
+            local p1_tp = helpers.GetTPColor(party[1].tp)
             local p1_hp = {color = ui.color.accent}
             local p1_mp = {color = ui.color.blue}
-            
+            --render
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(p1_values["HP"], text_opt)
             ui.size(80, 10)
             ui.progress(player.hp_percent/100, p1_hp)
             ui.location(0, 50)
-            ui.text(mpp, text_opt)
+            ui.text(p1_values["MP"], text_opt)
             ui.size(80, 10)
             ui.progress(player.mp_percent/100, p1_mp)
             ui.location(0, 80)
-            ui.text(tp, text_opt)
+            ui.text(p1_values["TP"], text_opt)
             ui.size(80, 10) 
             ui.progress(player.tp/3000, p1_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt)
+            ui.text(p1_values["Using"], text_opt)
 
         end
 
@@ -578,54 +464,51 @@ ui.display(function()
     if party[2] ~= nil then
 
         ui.window('p2_window', tUwuStates["P2"]["Window"], function()
+            
+            local distance = 0
+            
+            if party[2].id ~= nil then
+
+                distance = helpers.Round(math.sqrt(entities:by_id(party[2].id).distance), 1)
+
+            end
 
             tUwuStates["P2"]["Strings"]["HP"] = party[2].name .. "\n[HP%] " .. party[2].hp_percent
             tUwuStates["P2"]["Strings"]["MP"] = "[MP%] " .. party[2].mp_percent
             tUwuStates["P2"]["Strings"]["TP"] = "[TP] " .. party[2].tp
-            --strings
-            local hpp = FormatStr(tUwuStates["P2"]["Strings"]["HP"], format)
-            local mpp = FormatStr(tUwuStates["P2"]["Strings"]["MP"], format)
-            local tp = FormatStr(tUwuStates["P2"]["Strings"]["TP"], format)
-            local using = FormatStr(tUwuStates["P2"]["Strings"]["Using"], format)
-            --distance stuff
-            local distance = Round(math.sqrt(entities:by_id(party[2].id).distance), 1)
-            local dist_str = FormatStr("[D] " .. tostring(distance), format)
-            --colors
-            local p2_tp = GetTPColor(party[2].tp)
+            tUwuStates["P2"]["Strings"]["Distance"] = "[D] " .. distance
+
+            local p2_values = {
+                ["HP"] = {},
+                ["MP"] = {},
+                ["TP"] = {},
+                ["Distance"] = {},
+                ["Using"] = {},
+            }
+
+            p2_values = helpers.FormatStringTable(tUwuStates["P2"]["Strings"], p2_values, format)
+
+            local p2_tp = helpers.GetTPColor(party[2].tp)
             local p2_hp = {color = ui.color.accent}
             local p2_mp = {color = ui.color.blue}
-            local p2_dist = GetDistanceColor(distance)
-
-            if distance < 15 then
-
-                p2_dist = {color = ui.color.rgb(119, 247, 237)}
-
-            elseif distance > 15 and distance < 20 then
-
-                p2_dist = {color = ui.color.yellow}
-
-            elseif distance > 20 then 
-
-                p2_dist = {color = ui.color.red}
-
-            end
+            local p2_dist = helpers.GetDistanceColor(distance)
 
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(p2_values["HP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[2].hp_percent/100, p2_hp)
             ui.location(0, 50)
-            ui.text(mpp, text_opt)
+            ui.text(p2_values["MP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[2].mp_percent/100, p2_mp)
             ui.location(0, 80)
-            ui.text(tp, text_opt)
+            ui.text(p2_values["TP"], text_opt)
             ui.size(80, 10) 
             ui.progress(party[2].tp/3000, p2_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt)
+            ui.text(p2_values["Using"], text_opt)
             ui.location(70, 50)
-            ui.text(dist_str, p2_dist)
+            ui.text(p2_values["Distance"], p2_dist)
        
         end)
 
@@ -636,39 +519,51 @@ ui.display(function()
     if party[3] ~= nil then
 
         ui.window('p3_window', tUwuStates["P3"]["Window"], function()
-                
+            
+            local distance = 0
+            
+            if party[3].id ~= nil then
+
+                distance = helpers.Round(math.sqrt(entities:by_id(party[3].id).distance), 1)
+
+            end
+
             tUwuStates["P3"]["Strings"]["HP"] = party[3].name .. "\n[HP%] " .. party[3].hp_percent
             tUwuStates["P3"]["Strings"]["MP"] = "[MP%] " .. party[3].mp_percent
             tUwuStates["P3"]["Strings"]["TP"] = "[TP] " .. party[3].tp
+            tUwuStates["P3"]["Strings"]["Distance"] = "[D] " .. distance
 
-            local hpp = FormatStr(tUwuStates["P3"]["Strings"]["HP"], format)
-            local mpp = FormatStr(tUwuStates["P3"]["Strings"]["MP"], format)
-            local tp = FormatStr(tUwuStates["P3"]["Strings"]["TP"], format)
-            local using = FormatStr(tUwuStates["P3"]["Strings"]["Using"], format)
-            local distance = Round(math.sqrt(entities:by_id(party[3].id).distance), 1)
-            local dist_str = FormatStr("[D] " .. tostring(distance), format)
-            --colors
-            local p3_tp = GetTPColor(party[3].tp)
+            local p3_values = {
+                ["HP"] = {},
+                ["MP"] = {},
+                ["TP"] = {},
+                ["Distance"] = {},
+                ["Using"] = {},
+            }
+
+            p3_values = helpers.FormatStringTable(tUwuStates["P3"]["Strings"], p3_values, format)
+
+            local p3_tp = helpers.GetTPColor(party[3].tp)
             local p3_hp = {color = ui.color.accent}
             local p3_mp = {color = ui.color.blue}
-            local p3_dist = GetDistanceColor(distance)
+            local p3_dist = helpers.GetDistanceColor(distance)
 
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(p3_values["HP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[3].hp_percent/100, p3_hp)
             ui.location(0, 50)
-            ui.text(mpp, text_opt)
+            ui.text(p3_values["MP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[3].mp_percent/100, p3_mp)
             ui.location(0, 80)
-            ui.text(tp, text_opt)
+            ui.text(p3_values["TP"], text_opt)
             ui.size(80, 10) 
             ui.progress(party[3].tp/3000, p3_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt)  
+            ui.text(p3_values["Using"], text_opt)  
             ui.location(70, 50)
-            ui.text(dist_str, p3_dist)
+            ui.text(p3_values["Distance"], p3_dist)
     
         end)
 
@@ -680,37 +575,50 @@ ui.display(function()
 
         ui.window('p4_window', tUwuStates["P4"]["Window"], function()
              
+            local distance = 0
+            
+            if party[4].id ~= nil then
+
+                distance = helpers.Round(math.sqrt(entities:by_id(party[4].id).distance), 1)
+
+            end
+
             tUwuStates["P4"]["Strings"]["HP"] = party[4].name .. "\n[HP%] " .. party[4].hp_percent
             tUwuStates["P4"]["Strings"]["MP"] = "[MP%] " .. party[4].mp_percent
             tUwuStates["P4"]["Strings"]["TP"] = "[TP] " .. party[4].tp
-            local hpp = FormatStr(tUwuStates["P4"]["Strings"]["HP"], format)
-            local mpp = FormatStr(tUwuStates["P4"]["Strings"]["MP"], format)
-            local tp = FormatStr(tUwuStates["P4"]["Strings"]["TP"], format)
-            local using = FormatStr(tUwuStates["P4"]["Strings"]["Using"], format)
-            local distance = Round(math.sqrt(entities:by_id(party[4].id).distance), 1)
-            local dist_str = FormatStr("[D] " .. tostring(distance), format)
-            --colors
-            local p4_tp = GetTPColor(party[4].tp)
+            tUwuStates["P4"]["Strings"]["Distance"] = "[D] " .. distance
+
+            local p4_values = {
+                ["HP"] = {},
+                ["MP"] = {},
+                ["TP"] = {},
+                ["Distance"] = {},
+                ["Using"] = {},
+            }
+
+            p4_values = helpers.FormatStringTable(tUwuStates["P4"]["Strings"], p4_values, format)
+
+            local p4_tp = helpers.GetTPColor(party[4].tp)
             local p4_hp = {color = ui.color.accent}
             local p4_mp = {color = ui.color.blue}
-            local p4_dist = GetDistanceColor(distance)
+            local p4_dist = helpers.GetDistanceColor(distance)
 
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(p4_values["HP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[4].hp_percent/100, p4_hp)
             ui.location(0, 50)
-            ui.text(mpp, text_opt)
+            ui.text(p4_values["MP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[4].mp_percent/100, p4_mp)
             ui.location(0, 80)
-            ui.text(tp, text_opt)
+            ui.text(p4_values["TP"], text_opt)
             ui.size(80, 10) 
             ui.progress(party[4].tp/3000, p4_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt)
+            ui.text(p4_values["Using"], text_opt)
             ui.location(70, 50)
-            ui.text(dist_str, p4_dist)
+            ui.text(p4_values["Distance"], p4_dist)
       
         end)
 
@@ -722,38 +630,50 @@ ui.display(function()
 
         ui.window('p5_window', tUwuStates["P5"]["Window"], function()
 
+            local distance = 0
+            
+            if party[5].id ~= nil then
+
+                distance = helpers.Round(math.sqrt(entities:by_id(party[5].id).distance), 1)
+
+            end
+
             tUwuStates["P5"]["Strings"]["HP"] = party[5].name .. "\n[HP%] " .. party[5].hp_percent
             tUwuStates["P5"]["Strings"]["MP"] = "[MP%] " .. party[5].mp_percent
             tUwuStates["P5"]["Strings"]["TP"] = "[TP] " .. party[5].tp
+            tUwuStates["P5"]["Strings"]["Distance"] = "[D] " .. distance
+            
+            local p5_values = {
+                ["HP"] = {},
+                ["MP"] = {},
+                ["TP"] = {},
+                ["Distance"] = {},
+                ["Using"] = {},
+            }
 
-            local hpp = FormatStr(tUwuStates["P5"]["Strings"]["HP"], format)
-            local mpp = FormatStr(tUwuStates["P5"]["Strings"]["MP"], format)
-            local tp = FormatStr(tUwuStates["P5"]["Strings"]["TP"], format)
-            local using = FormatStr(tUwuStates["P5"]["Strings"]["Using"], format)
-            local distance = Round(math.sqrt(entities:by_id(party[5].id).distance), 1)
-            local dist_str = FormatStr("[D] " .. tostring(distance), format)
-            --colors
-            local p5_tp = GetTPColor(party[5].tp)
+            p5_values = helpers.FormatStringTable(tUwuStates["P5"]["Strings"], p5_values, format)
+
+            local p5_tp = helpers.GetTPColor(party[5].tp)
             local p5_hp = {color = ui.color.accent}
             local p5_mp = {color = ui.color.blue}
-            local p5_dist = GetDistanceColor(distance)
+            local p5_dist = helpers.GetDistanceColor(distance)
 
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(p5_values["HP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[5].hp_percent/100, p5_hp)
             ui.location(0, 50)
-            ui.text(mpp, text_opt)
+            ui.text(p5_values["MP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[5].mp_percent/100, p5_mp)
             ui.location(0, 80)
-            ui.text(tp, text_opt)
+            ui.text(p5_values["TP"], text_opt)
             ui.size(80, 10) 
             ui.progress(party[5].tp/3000, p5_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt) 
+            ui.text(p5_values["Using"], text_opt) 
             ui.location(70, 50)
-            ui.text(dist_str, p5_dist)  
+            ui.text(p5_values["Distance"], p5_dist)  
     
         end)
 
@@ -764,38 +684,51 @@ ui.display(function()
     if party[6] ~= nil then
 
         ui.window('p6_window', tUwuStates["P6"]["Window"], function()
+            
+            local distance = 0
+            
+            if party[6].id ~= nil then
+
+                distance = helpers.Round(math.sqrt(entities:by_id(party[6].id).distance), 1)
+
+            end
 
             tUwuStates["P6"]["Strings"]["HP"] = party[6].name .. "\n[HP%] " .. party[6].hp_percent
             tUwuStates["P6"]["Strings"]["MP"] = "[MP%] " .. party[6].mp_percent
             tUwuStates["P6"]["Strings"]["TP"] = "[TP] " .. party[6].tp
-            local hpp = FormatStr(tUwuStates["P6"]["Strings"]["HP"], format)
-            local mpp = FormatStr(tUwuStates["P6"]["Strings"]["MP"], format)
-            local tp = FormatStr(tUwuStates["P6"]["Strings"]["TP"], format)
-            local using = FormatStr(tUwuStates["P6"]["Strings"]["Using"], format)
-            local distance = Round(math.sqrt(entities:by_id(party[6].id).distance), 1)
-            local dist_str = FormatStr("[D] " .. tostring(distance), format)
-            --colors
-            local p6_tp = GetTPColor(party[6].tp)
+            tUwuStates["P6"]["Strings"]["Distance"] = "[D] " .. distance
+            
+            local p6_values = {
+                ["HP"] = {},
+                ["MP"] = {},
+                ["TP"] = {},
+                ["Distance"] = {},
+                ["Using"] = {},
+            }
+
+            p6_values = helpers.FormatStringTable(tUwuStates["P6"]["Strings"], p6_values, format)
+
+            local p6_tp = helpers.GetTPColor(party[6].tp)
             local p6_hp = {color = ui.color.accent}
             local p6_mp = {color = ui.color.blue}
-            local p6_dist = GetDistanceColor(distance)
+            local p6_dist = helpers.GetDistanceColor(distance)
 
             ui.location(0, 0)
-            ui.text(hpp, text_opt)
+            ui.text(p6_values["HP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[6].hp_percent/100, p6_hp)
             ui.location(0, 50)
-            ui.text(mpp, text_opt)
+            ui.text(p6_values["MP"], text_opt)
             ui.size(80, 10)
             ui.progress(party[6].mp_percent/100, p6_mp)
             ui.location(0, 80)
-            ui.text(tp, text_opt)
+            ui.text(p6_values["TP"], text_opt)
             ui.size(80, 10) 
             ui.progress(party[6].tp/3000, p6_tp)
             ui.location(0, 110)
-            ui.text(using, text_opt)
+            ui.text(p6_values["Using"], text_opt)
             ui.location(70, 50)
-            ui.text(dist_str, p6_dist)
+            ui.text(p6_values["Distance"], p6_dist)
 
         end)
 
