@@ -10,6 +10,7 @@ local table = require('table')
 local entities = require('entities')
 local client_data = require('client_data')
 local resources = require('resources')
+local world = require('world')
 local helpers = require('helpers')
 --Contains window settings and associated strings
 
@@ -467,7 +468,7 @@ ui.display(function()
             
             local distance = 0
             
-            if party[2].id ~= nil then
+            if party[2].id ~= nil and party[2].zone_id == world.zone_id then
 
                 distance = helpers.Round(math.sqrt(entities:by_id(party[2].id).distance), 1)
 
@@ -522,8 +523,8 @@ ui.display(function()
             
             local distance = 0
             
-            if party[3].id ~= nil then
-
+            if party[3].id ~= nil and party[3].zone_id == world.zone_id then
+                print(party[3].id)
                 distance = helpers.Round(math.sqrt(entities:by_id(party[3].id).distance), 1)
 
             end
@@ -577,7 +578,7 @@ ui.display(function()
              
             local distance = 0
             
-            if party[4].id ~= nil then
+            if party[4].id ~= nil and party[4].zone_id == world.zone_id then
 
                 distance = helpers.Round(math.sqrt(entities:by_id(party[4].id).distance), 1)
 
@@ -632,7 +633,7 @@ ui.display(function()
 
             local distance = 0
             
-            if party[5].id ~= nil then
+            if party[5].id ~= nil and party[5].zone_id == world.zone_id then
 
                 distance = helpers.Round(math.sqrt(entities:by_id(party[5].id).distance), 1)
 
@@ -687,7 +688,7 @@ ui.display(function()
             
             local distance = 0
             
-            if party[6].id ~= nil then
+            if party[6].id ~= nil and party[6].zone_id == world.zone_id then
 
                 distance = helpers.Round(math.sqrt(entities:by_id(party[6].id).distance), 1)
 
