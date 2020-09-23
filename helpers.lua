@@ -3,6 +3,7 @@ local client_data = require('client_data')
 local resources = require('resources')
 local math = require('math')
 local ui = require('core.ui')
+local enumerable = require('enumerable')
 
 function helpers.get()
 
