@@ -1,6 +1,6 @@
 <package>
   <name>UwuTP</name>
-  <version>1.0.0.0</version>
+  <version>1.1.0.0</version>
   <type>addon</type>
   <dependencies>
     <dependency>player</dependency>
@@ -10,5 +10,6 @@
     <dependency>enumerable</dependency>
     <dependency>target</dependency>
     <dependency>entities</dependency>
+    <dependency>client_data</dependency>
   </dependencies>
 </package>
