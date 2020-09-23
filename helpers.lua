@@ -101,7 +101,7 @@ function helpers.get()
     
             --player ws
     
-            elseif category == 7 and t_param <= 255  then
+            elseif category == 7 and t_param > 0 and t_param <= 255  then
                 
                 str = "[WS] " .. resources.weapon_skills[t_param].name
                 print(str)
